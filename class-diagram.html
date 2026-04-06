@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BookMyShow — Class Diagram</title>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+          background: #f5f4ef;
+          height: 100vh;
+          overflow: hidden;
+          display: flex;
+          flex-direction: column;
+        }
+        header {
+          flex-shrink: 0;
+          background: #fff;
+          border-bottom: 1px solid #e0ded8;
+          padding: 10px 20px;
+          display: flex;
+          align-items: center;
+          gap: 16px;
+          flex-wrap: wrap;
+        }
+        header h1 { font-size: 14px; font-weight: 500; color: #2c2c2a; }
+        .hbtn {
+          padding: 4px 12px; border: 1px solid #d3d1c7;
+          background: #fff; border-radius: 6px; font-size: 12px;
+          cursor: pointer; color: #5f5e5a;
+        }
+        .hbtn:hover { background: #f5f4ef; }
+        .legend { display: flex; gap: 18px; font-size: 11px; color: #888780; align-items: center; margin-left: auto; flex-wrap: wrap; }
+        .legend-item { display: flex; align-items: center; gap: 6px; }
+        #viewport { flex: 1; overflow: auto; }
+        #canvas { position: relative; width: 1600px; height: 1020px; user-select: none; }
+        #lines { position: absolute; inset: 0; pointer-events: none; z-index: 0; }
+        .cbox {
+          position: absolute; border: 1px solid; border-radius: 8px;
+          overflow: hidden; z-index: 1; cursor: grab; transition: box-shadow 0.12s;
+        }
+        .cbox:hover { box-shadow: 0 2px 10px rgba(0,0,0,0.12); z-index: 2; }
+        .cbox.dragging { cursor: grabbing; box-shadow: 0 6px 20px rgba(0,0,0,0.17); z-index: 100; }
+        .bh { padding: 8px 10px 6px; }
+        .stereotype { font-size: 10px; font-style: italic; opacity: 0.72; margin-bottom: 2px; }
+        .bname { font-size: 13px; font-weight: 500; white-space: nowrap; }
+        .bs { padding: 5px 10px; border-top: 1px solid transparent; }
+        .bf, .bm { font-size: 11px; line-height: 1.7; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        @media (prefers-color-scheme: dark) {
+          body { background: #1a1a18; }
+          header { background: #242422; border-color: #3a3a37; }
+          header h1 { color: #e8e6df; }
+          .hbtn { background: #2c2c2a; border-color: #3a3a37; color: #b4b2a9; }
+          .hbtn:hover { background: #343432; }
+        }
+    </style>
+</head>
+<body>
+<header>
+    <h1>BookMyShow — class diagram</h1>
+    <button class="hbtn" onclick="resetLayout()">Reset layout</button>
+    <div class="legend">
+        <div class="legend-item">
+            <svg width="34" height="10"><line x1="2" y1="5" x2="22" y2="5" stroke="#534AB7" stroke-width="1.5"/><path d="M18,1 L26,5 L18,9 Z" fill="none" stroke="#534AB7" stroke-width="1.3"/></svg>
+            extends / implements
+        </div>
+        <div class="legend-item">
+            <svg width="34" height="10"><line x1="2" y1="5" x2="22" y2="5" stroke="#534AB7" stroke-width="1.5"/><path d="M18,1 L26,5 L18,9 Z" fill="#534AB7"/></svg>
+            has / uses
+        </div>
+        <div class="legend-item">
+            <svg width="34" height="10"><line x1="2" y1="5" x2="22" y2="5" stroke="#888780" stroke-width="1.2" stroke-dasharray="5 3"/><path d="M18,2 L26,5 L18,8" fill="none" stroke="#888780" stroke-width="1.2" stroke-linecap="round"/></svg>
+            depends / creates
+        </div>
+    </div>
+</header>
+<div id="viewport">
+    <div id="canvas">
+        <svg id="lines" width="1600" height="1020"><defs id="defs"></defs></svg>
+    </div>
+</div>
+<script>
+    const DARK = matchMedia('(prefers-color-scheme: dark)').matches;
+    const P = {
+      purple: DARK
+        ? { bg:'#2a2640', bd:'#7F77DD', ti:'#CECBF6', tx:'#AFA9EC', dv:'rgba(127,119,221,0.3)' }
+        : { bg:'#EEEDFE', bd:'#534AB7', ti:'#26215C', tx:'#3C3489', dv:'rgba(83,74,183,0.2)' },
+      teal: DARK
+        ? { bg:'#04342C', bd:'#1D9E75', ti:'#9FE1CB', tx:'#5DCAA5', dv:'rgba(29,158,117,0.28)' }
+        : { bg:'#E1F5EE', bd:'#0F6E56', ti:'#085041', tx:'#0F6E56', dv:'rgba(15,110,86,0.18)' },
+      coral: DARK
+        ? { bg:'#2e140d', bd:'#D85A30', ti:'#F5C4B3', tx:'#F0997B', dv:'rgba(216,90,48,0.28)' }
+        : { bg:'#FAECE7', bd:'#993C1D', ti:'#4A1B0C', tx:'#712B13', dv:'rgba(153,60,29,0.16)' },
+      amber: DARK
+        ? { bg:'#2a1f06', bd:'#BA7517', ti:'#FAC775', tx:'#EF9F27', dv:'rgba(186,117,23,0.28)' }
+        : { bg:'#FAEEDA', bd:'#854F0B', ti:'#412402', tx:'#633806', dv:'rgba(133,79,11,0.18)' },
+      gray: DARK
+        ? { bg:'#2C2C2A', bd:'#888780', ti:'#D3D1C7', tx:'#B4B2A9', dv:'rgba(136,135,128,0.22)' }
+        : { bg:'#F1EFE8', bd:'#5F5E5A', ti:'#2C2C2A', tx:'#5F5E5A', dv:'rgba(95,94,90,0.16)' },
+    };
+
+    const CLASSES = [
+      // Row 1 — application flow
+      { id:'Main', color:'purple', w:230, x:60, y:40,
+        fields:  ['MAX_REQUESTS: int', 'WINDOW_SIZE_SECONDS: int', 'REFILL_RATE_PER_SECOND: int'],
+        methods: ['main(String[])', 'runSingleClientSection(String, RateLimitStrategy)', 'runTwoClientFixedWindowSection()'] },
+      { id:'RateLimitedAPIProxy', color:'purple', w:320, x:350, y:40,
+        fields:  ['realService: RemoteAPIService', 'strategy: RateLimitStrategy'],
+        methods: ['call(String, String): Response'] },
+      { id:'RealRemoteAPIService', color:'purple', w:290, x:760, y:40,
+        fields:  ['endpoint: String'],
+        methods: ['call(String, String): Response'] },
+
+      // Row 2 — interfaces and strategy example
+      { id:'RemoteAPIService', color:'coral', w:250, x:110, y:300, stereotype:'«interface»',
+        fields:  [],
+        methods: ['call(String, String): Response'] },
+      { id:'RateLimitStrategy', color:'coral', w:250, x:430, y:300, stereotype:'«interface»',
+        fields:  [],
+        methods: ['isAllowed(String): boolean', 'getConfig(): RateLimiterConfig'] },
+      { id:'FixedWindowStrategy', color:'gray', w:340, x:760, y:300,
+        fields:  ['config: RateLimiterConfig', 'requestCounts: Map<String, Integer>', 'windowStartTimes: Map<String, Long>'],
+        methods: ['isAllowed(String): boolean', 'getConfig(): RateLimiterConfig'] },
+
+      // Row 3 — models and exception
+      { id:'RateLimiterConfig', color:'teal', w:270, x:150, y:580,
+        fields:  ['maxRequests: int', 'windowSizeSeconds: int', 'refillRatePerSecond: int'],
+        methods: ['getMaxRequests(): int', 'getWindowSizeSeconds(): int', 'getRefillRatePerSecond(): int'] },
+      { id:'Response', color:'teal', w:240, x:500, y:580,
+        fields:  ['clientId: String', 'body: String', 'statusCode: int'],
+        methods: ['getClientId(): String', 'getBody(): String', 'getStatusCode(): int'] },
+      { id:'RateLimitExceededException', color:'amber', w:360, x:800, y:580,
+        fields:  [],
+        methods: ['RateLimitExceededException(String)', 'RateLimitExceededException(String, Throwable)'] },
+    ];
+
+    const CONNS = [
+      // Entry flow dependencies
+      { f:'Main', t:'RateLimitedAPIProxy', type:'dashed' },
+      { f:'Main', t:'RealRemoteAPIService', type:'dashed' },
+      { f:'Main', t:'FixedWindowStrategy', type:'dashed' },
+      { f:'Main', t:'RemoteAPIService', type:'dashed' },
+      { f:'Main', t:'RateLimiterConfig', type:'dashed' },
+      { f:'Main', t:'Response', type:'dashed' },
+
+      // Interface implementations
+      { f:'RateLimitedAPIProxy', t:'RemoteAPIService', type:'impl' },
+      { f:'RealRemoteAPIService', t:'RemoteAPIService', type:'impl' },
+      { f:'FixedWindowStrategy', t:'RateLimitStrategy', type:'impl' },
+
+      // Core associations
+      { f:'RateLimitedAPIProxy', t:'RateLimitStrategy', type:'solid' },
+      { f:'RateLimitedAPIProxy', t:'RateLimitExceededException', type:'dashed' },
+      { f:'RemoteAPIService', t:'Response', type:'dashed' },
+      { f:'RealRemoteAPIService', t:'Response', type:'dashed' },
+      { f:'RateLimitStrategy', t:'RateLimiterConfig', type:'dashed' },
+      { f:'FixedWindowStrategy', t:'RateLimiterConfig', type:'solid' },
+    ];
+
+    const pos = {};
+    let drag = null, rafPending = false;
+
+    function init() {
+      setupMarkers();
+      const canvas = document.getElementById('canvas');
+      CLASSES.forEach(c => {
+        canvas.appendChild(makeBox(c));
+        pos[c.id] = { x: c.x, y: c.y, w: c.w, h: 100 };
+      });
+      requestAnimationFrame(() => {
+        CLASSES.forEach(c => { pos[c.id].h = document.getElementById('b-' + c.id).offsetHeight; });
+        draw();
+      });
+      canvas.addEventListener('mousedown', onDown);
+      window.addEventListener('mousemove', onMove);
+      window.addEventListener('mouseup', onUp);
+      canvas.addEventListener('touchstart', onTouchStart, { passive: true });
+      window.addEventListener('touchmove', onTouchMove, { passive: false });
+      window.addEventListener('touchend', onTouchEnd);
+    }
+
+    function setupMarkers() {
+      const sc = DARK ? '#7F77DD' : '#534AB7';
+      const dc = DARK ? '#888780' : '#888780';
+      const hf = DARK ? '#2a2640' : '#EEEDFE';
+      document.getElementById('defs').innerHTML = `
+        <marker id="m-impl" viewBox="0 0 12 10" refX="11" refY="5" markerWidth="9" markerHeight="9" orient="auto">
+          <path d="M1,1 L11,5 L1,9 Z" fill="${hf}" stroke="${sc}" stroke-width="1.2" stroke-linejoin="round"/>
+        </marker>
+        <marker id="m-solid" viewBox="0 0 10 8" refX="9" refY="4" markerWidth="7" markerHeight="7" orient="auto">
+          <path d="M0,0 L9,4 L0,8 Z" fill="${sc}"/>
+        </marker>
+        <marker id="m-dash" viewBox="0 0 10 8" refX="9" refY="4" markerWidth="7" markerHeight="7" orient="auto">
+          <path d="M0,0 L9,4 L0,8" fill="none" stroke="${dc}" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+        </marker>`;
+    }
+
+    function makeBox(cls) {
+      const c = P[cls.color];
+      const el = document.createElement('div');
+      el.id = 'b-' + cls.id;
+      el.className = 'cbox';
+      el.style.cssText = `left:${cls.x}px;top:${cls.y}px;width:${cls.w}px;background:${c.bg};border-color:${c.bd}`;
+      let h = `<div class="bh" style="border-bottom-color:${c.dv}">`;
+      if (cls.stereotype) h += `<div class="stereotype" style="color:${c.tx}">${cls.stereotype}</div>`;
+      h += `<div class="bname" style="color:${c.ti}">${cls.id}</div></div>`;
+      if (cls.fields && cls.fields.length) {
+        h += `<div class="bs" style="border-top-color:${c.dv}">`;
+        cls.fields.forEach(f => { h += `<div class="bf" style="color:${c.tx}">${f}</div>`; });
+        h += '</div>';
+      }
+      if (cls.methods && cls.methods.length) {
+        h += `<div class="bs" style="border-top-color:${c.dv}">`;
+        cls.methods.forEach(m => { h += `<div class="bm" style="color:${c.tx}">${m}</div>`; });
+        h += '</div>';
+      }
+      el.innerHTML = h;
+      return el;
+    }
+
+    function route(a, b) {
+      const acx = a.x + a.w/2, acy = a.y + a.h/2;
+      const bcx = b.x + b.w/2, bcy = b.y + b.h/2;
+      const dx = bcx - acx, dy = bcy - acy;
+      let x1, y1, x2, y2;
+      if (Math.abs(dx) >= Math.abs(dy)) {
+        x1 = dx >= 0 ? a.x + a.w : a.x; x2 = dx >= 0 ? b.x : b.x + b.w;
+        y1 = acy; y2 = bcy;
+        const mx = (x1 + x2) / 2;
+        return `M${x1},${y1} L${mx},${y1} L${mx},${y2} L${x2},${y2}`;
+      } else {
+        y1 = dy >= 0 ? a.y + a.h : a.y; y2 = dy >= 0 ? b.y : b.y + b.h;
+        x1 = acx; x2 = bcx;
+        const my = (y1 + y2) / 2;
+        return `M${x1},${y1} L${x1},${my} L${x2},${my} L${x2},${y2}`;
+      }
+    }
+
+    function draw() {
+      const svg = document.getElementById('lines');
+      const defs = document.getElementById('defs');
+      while (svg.lastChild !== defs) svg.removeChild(svg.lastChild);
+      const sc = DARK ? '#7F77DD' : '#534AB7';
+      const dc = DARK ? '#888780' : '#888780';
+      CONNS.forEach(cn => {
+        const a = pos[cn.f], b = pos[cn.t];
+        if (!a || !b) return;
+        const p = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        p.setAttribute('d', route(a, b));
+        p.setAttribute('fill', 'none');
+        if (cn.type === 'impl') {
+          p.setAttribute('stroke', sc); p.setAttribute('stroke-width', '1.5');
+          p.setAttribute('marker-end', 'url(#m-impl)');
+        } else if (cn.type === 'dashed') {
+          p.setAttribute('stroke', dc); p.setAttribute('stroke-width', '1.2');
+          p.setAttribute('stroke-dasharray', '6 3');
+          p.setAttribute('marker-end', 'url(#m-dash)');
+        } else {
+          p.setAttribute('stroke', sc); p.setAttribute('stroke-width', '1.5');
+          p.setAttribute('marker-end', 'url(#m-solid)');
+        }
+        svg.appendChild(p);
+      });
+    }
+
+    function schedDraw() {
+      if (rafPending) return;
+      rafPending = true;
+      requestAnimationFrame(() => { rafPending = false; draw(); });
+    }
+
+    function startDrag(id, cx, cy) {
+      drag = { id, mx: cx, my: cy, bx: pos[id].x, by: pos[id].y };
+      document.getElementById('b-' + id).classList.add('dragging');
+    }
+    function moveDrag(cx, cy) {
+      if (!drag) return;
+      const nx = Math.max(0, drag.bx + cx - drag.mx);
+      const ny = Math.max(0, drag.by + cy - drag.my);
+      pos[drag.id].x = nx; pos[drag.id].y = ny;
+      const el = document.getElementById('b-' + drag.id);
+      el.style.left = nx + 'px'; el.style.top = ny + 'px';
+      schedDraw();
+    }
+    function endDrag() {
+      if (!drag) return;
+      document.getElementById('b-' + drag.id).classList.remove('dragging');
+      drag = null;
+    }
+    function onDown(e) {
+      const box = e.target.closest('.cbox');
+      if (!box) return;
+      e.preventDefault();
+      startDrag(box.id.slice(2), e.clientX, e.clientY);
+    }
+    function onMove(e) { moveDrag(e.clientX, e.clientY); }
+    function onUp()    { endDrag(); }
+    function onTouchStart(e) {
+      const box = e.target.closest('.cbox');
+      if (!box) return;
+      startDrag(box.id.slice(2), e.touches[0].clientX, e.touches[0].clientY);
+    }
+    function onTouchMove(e) {
+      if (!drag) return;
+      e.preventDefault();
+      moveDrag(e.touches[0].clientX, e.touches[0].clientY);
+    }
+    function onTouchEnd() { endDrag(); }
+
+    function resetLayout() {
+      CLASSES.forEach(c => {
+        pos[c.id].x = c.x; pos[c.id].y = c.y;
+        const el = document.getElementById('b-' + c.id);
+        el.style.left = c.x + 'px'; el.style.top = c.y + 'px';
+      });
+      draw();
+    }
+
+    window.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
