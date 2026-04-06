@@ -1,6 +1,7 @@
 # Rate Limiter
 
 Simple Java rate limiter system using the Proxy pattern with Fixed Window and Sliding Window strategies.
+It demonstrates independent per-client quotas through a simple runnable console example.
 
 ## Class Diagram
 
